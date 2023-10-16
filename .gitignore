@@ -1,7 +1,7 @@
 # http://www.gnu.org/software/automake
 
 Makefile.in
-#makefile.in
+makefile.in
 /ar-lib
 /mdate-sh
 /py-compile
@@ -51,7 +51,7 @@ m4/lt~obsolete.m4
 # can automatically generate from config.status script
 # (which is called by configure script))
 Makefile
-#makefile
+makefile
 INSTALL
 objs/*
 configure~

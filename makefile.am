@@ -10,7 +10,7 @@ clean:
 
 $(EXECUTABLE):
 	mkdir -p objs
-	gcc -Wall src/main.c -o objs/$(EXECUTABLE) $(LIB) $(LDFLAGS)
+	gcc `pkg-config --cflags libconfig` -Wall src/main.c -o objs/$(EXECUTABLE) $(LIB) $(LDFLAGS) `pkg-config --libs libconfig`
 
 test:
 	./objs/$(EXECUTABLE) -h

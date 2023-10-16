@@ -30,7 +30,11 @@ const char *gengetopt_args_info_usage = "Usage: ddeploy deploy -c /path/to/file"
 
 const char *gengetopt_args_info_versiontext = "";
 
-const char *gengetopt_args_info_description = "Make a copy of the docker while pulling a new version of the container ";
+const char *gengetopt_args_info_description =
+  "Make a copy of the docker container while pulling a new version ofthe container\n" 
+  "Docker Deploy Copyright (C) 2023 Janith Cooray \n" 
+  "This program comes with ABSOLUTELY NO WARRANTY;\n" 
+  "This is free software, and you are welcome to redistribute it";
 
 const char *gengetopt_args_info_help[] = {
   "  -h, --help             Print help and exit",

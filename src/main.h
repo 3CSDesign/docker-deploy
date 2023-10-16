@@ -15,20 +15,8 @@
   along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-#include "main.h"
-
-int main (int argc, char **argv){
-  options_arg_type args_info;
-  
-  //if (options(argc, argv, &args_info) != 0)
-    //  exit(1);
-   DeployConfig config;
-   read_config("main.conf", &config);
-
-   // Use the configuration variables as needed
-   printf(config.name);
-   printf("Main File: %s\n", config.main_file);
-   printf("Aux File: %s\n", config.aux_file);
-   printf("On Main Run:\n%s\n", config.on_main_run);
-  
-}
+#include <stdio.h>
+#include "stdlib.h"
+#include "options.c"
+#include <libconfig.h>
+#include "conf.c"
