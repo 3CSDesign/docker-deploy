@@ -1,0 +1,19 @@
+EXECUTABLE = dedeploy
+
+
+.PHONY: all clean yaml
+
+all: clean $(EXECUTABLE)
+
+clean:
+	rm -rf objs
+
+$(EXECUTABLE):
+	mkdir -p objs
+	gcc -Wall src/main.c -o objs/$(EXECUTABLE) $(LIB) $(LDFLAGS)
+
+test:
+	./objs/$(EXECUTABLE) -h
+
+install:
+	cp objs/$(EXECUTABLE) /usr/local/bin/$(EXECUTABLE)
