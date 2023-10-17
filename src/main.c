@@ -21,10 +21,9 @@ int main (int argc, char **argv){
   //options_arg_type args_info;
   
   //if (options(argc, argv, &args_info) != 0)
-    //  exit(1);
-   DeployConfig config;
-   read_config("main.conf", &config);
+    //  exit(1);   
+   read_config("main.conf");
    // Use the configuration variables as needed
-   printf("Name %s\n", config.name);
-   free(config.name);
+   // printf("Name %s\n", config.name);
+   //free(config.name);
 }

@@ -20,4 +20,8 @@
 #include <string.h>
 #include "options.c"
 #include <libconfig.h>
+#include <dirent.h>
+#include <fnmatch.h>
+#include <limits.h>
+#include <sys/stat.h>
 #include "conf.c"
