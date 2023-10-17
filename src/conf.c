@@ -1,33 +1,48 @@
+/*
+  Copyright (C) 2023 Janith Cooray
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or (at
+  your option) any later version.
+
+  This program is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see https://www.gnu.org/licenses/.
+ */
+
 typedef struct {
   // Name of the project which is also the user 
-    char name[100];
+    char *name;
   // path to the main docker compose file
-    char main_file[100];
+    char *main_file;
   // path to the aux docker compose file
-    char aux_file[100];
+    char *aux_file;
   // bash script to run during the main startup
-    char on_main_run[1000];
+    char *on_main_run;
   // bash to check if the main containers are online
-    char on_main_healthcheck[1000];
+    char *on_main_healthcheck;
   // bash script to exec on fail of main
-    char on_main_fail[1000];
+    char *on_main_fail;
 
-    char on_aux_run[1000];
-    char on_aux_healthcheck[1000];
-    char on_aux_fail[1000];
+    char *on_aux_run;
+    char *on_aux_healthcheck;
+    char *on_aux_fail;
 
 } DeployConfig;
 
+struct DeployConfig deployConfigs[n];
 
-void read_config(const char* configFile, DeployConfig* config) {
-
+void read_config(const char* configFile, DeployConfig *config) {
   // Using https://hyperrealm.github.io/libconfig
-  
   config_t cfg;
   config_init(&cfg);
   
-  // IF config fails
-
+  // Read fike
    if (!config_read_file(&cfg, configFile)) {
         fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
         config_error_line(&cfg), config_error_text(&cfg));
@@ -37,23 +52,15 @@ void read_config(const char* configFile, DeployConfig* config) {
   
   const config_setting_t* root = config_root_setting(&cfg);
 
+  const config_setting_t* projects = config_lookup(&cfg, "project");
+
   
-  const config_setting_t* project = config_setting_get_member(root, "project");
+  /*
   if (project != NULL) {
-        config_setting_lookup_string(project, "name", config->name);
-        config_setting_lookup_string(project, "main_file", config->main_file);
-        config_setting_lookup_string(project, "aux_file", config->aux_file);
-
-        config_setting_t* on_main_run = config_setting_get_member(project, "on_main_run");
-        if (on_main_run != NULL) {
-            for (int i = 0; i < config_setting_length(on_main_run); i++) {
-                const char* line = config_setting_get_string_elem(on_main_run, i);
-                strncat(config->on_main_run, line, sizeof(config->on_main_run)-strlen(config->on_main_run)-1);
-                strncat(config->on_main_run, "\n", sizeof(config->on_main_run)-strlen(config->on_main_run)-1);
-            }
-        }
-
-        // Add similar code to read the rest of the variables
-    }
+    const char* name;
+    config_setting_lookup_string(project, "name", &name);
+    config->name = malloc(strlen(name)+1);
+    strcpy(config->name,name);
+    }*/
    config_destroy(&cfg);
 }
