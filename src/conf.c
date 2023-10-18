@@ -15,27 +15,7 @@
   along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
-typedef struct {
-  // Name of the project which is also the user 
-    char *name;
-  // path to the main docker compose file
-    char *main_file;
-  // path to the aux docker compose file
-    char *aux_file;
-  // bash script to run during the main startup
-    char *on_main_run;
-  // bash to check if the main containers are online
-    char *on_main_healthcheck;
-  // bash script to exec on fail of main
-    char *on_main_fail;
-
-    char *on_aux_run;
-    char *on_aux_healthcheck;
-    char *on_aux_fail;
-
-} DeployConfig;
-
-DeployConfig deployConfigs[100];
+#include "conf.h"
 
 /**
    Include File Option
@@ -122,11 +102,42 @@ static const char **include_func(config_t *config,
   return((const char **)result);
 }
 
+void alloc_setting(config_setting_t *config_setting,
+			     const char* setting_name ,
+			     char* *setting)
+{
+  const char* tmp;
+  config_setting_lookup_string(config_setting, setting_name, &tmp);
+  *setting = malloc(strlen(tmp)+1);
+  strcpy(*setting,tmp);
+}
+
+void alloc_arr(config_setting_t *config_setting,
+			     const char* setting_name ,
+				 runner_structs *setting)
+{
+  config_setting_t* tmp = config_setting_lookup( config_setting , setting_name);
+  if (tmp != NULL){
+    int tmp_count = config_setting_length(tmp);
+    int i;
+    //setting->lines = &tmp_count;
+    setting->run_script = malloc(tmp_count * sizeof(char*));
+    for(i = 0; i < tmp_count; i++){
+      config_setting_t *scripts = config_setting_get_string_elem(tmp, i);
+      setting->run_script[i] = malloc(strlen(scripts));
+      strcpy(setting->run_script[i], scripts);
+    }
+  }
+
+}
+
+
 void read_config(const char* configFile) {
   // Using https://hyperrealm.github.io/libconfig
   config_t cfg;
   config_init(&cfg);
   config_set_include_func(&cfg, include_func);  
+
   // Read fike
    if (!config_read_file(&cfg, configFile)) {
         fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
@@ -138,57 +149,31 @@ void read_config(const char* configFile) {
   const config_setting_t* projects = config_lookup(&cfg,"deploy.projects");
 
   if (projects != NULL){
+
     int count = config_setting_length(projects);
+
+    DeployConfig deployConfigs[count];
+
     int i;
     for(i = 0; i < count; ++i)
       {
 	config_setting_t *project = config_setting_get_elem(projects, i);
-	const char* name,
-	  main_file,
-	  aux_file,
-	  on_main_run,
-	  on_main_healthcheck,
-	  on_main_fail,
-	  on_aux_run,
-	  on_aux_healthcheck,
-	  on_aux_fail;
 
-	if(!(config_setting_lookup_string(project, "name", &name)))
-	  continue;
-
-	config_setting_lookup_string(project, "name", &name);
-	config_setting_lookup_string(project, "main_file", &main_file);/*
-	config_setting_lookup_string(project, "aux_file", &aux_file);/*
-	config_setting_lookup_string(project, "on_main_run", &on_main_run);
-	config_setting_lookup_string(project, "on_main_healthcheck", &on_main_healthcheck);
-	config_setting_lookup_string(project, "on_main_fail", &on_main_fail);
-	config_setting_lookup_string(project, "on_aux_run", &on_aux_run);
-	config_setting_lookup_string(project, "on_aux_healthcheck", &on_aux_healthcheck);
-	config_setting_lookup_string(project, "on_aux_fail", &on_aux_fail);*/
-
-
-	deployConfigs[i].name = malloc(strlen(name)+1);/*
-	deployConfigs[i].main_file = malloc(strlen(main_file)+1);
-	deployConfigs[i].aux_file = malloc(strlen(aux_file)+1);/*
-	deployConfigs[i].on_main_run = malloc(strlen(on_main_run)+1);
-	deployConfigs[i].on_main_healthcheck = malloc(strlen(on_main_healthcheck)+1);
-	deployConfigs[i].on_main_fail = malloc(strlen(on_main_fail)+1);
-	deployConfigs[i].on_aux_run = malloc(strlen(on_aux_run)+1);
-	deployConfigs[i].on_aux_healthcheck = malloc(strlen(on_aux_healthcheck)+1);
-	deployConfigs[i].on_aux_fail = malloc(strlen(on_aux_fail)+1);*/
+	alloc_setting(project,"name",&deployConfigs[i].name);
+	alloc_setting(project,"main_file",&deployConfigs[i].main_file);
+	alloc_setting(project,"aux_file",&deployConfigs[i].aux_file);
 	
-	strcpy(deployConfigs[i].name,name);/*
-	strcpy(deployConfigs[i].main_file,main_file);
-	strcpy(deployConfigs[i].aux_file,aux_file);
-	strcpy(deployConfigs[i].on_main_run,on_main_run);
-	strcpy(deployConfigs[i].on_main_healthcheck,on_main_healthcheck);
-	strcpy(deployConfigs[i].on_main_fail,on_main_fail);
-	strcpy(deployConfigs[i].on_aux_run,on_aux_run);
-	strcpy(deployConfigs[i].on_aux_healthcheck,on_aux_healthcheck);
-	strcpy(deployConfigs[i].on_aux_fail,on_aux_fail);*/
-
-	printf("Name %s\n", name);
-	
+	alloc_arr(project, "on_main_run", &deployConfigs[i].on_main_run);
+	alloc_arr(project, "on_main_healthcheck", &deployConfigs[i].on_main_healthcheck);
+	alloc_arr(project, "on_main_fail", &deployConfigs[i].on_main_fail);
+	alloc_arr(project, "on_aux_run", &deployConfigs[i].on_aux_run);
+	alloc_arr(project, "on_aux_healthcheck", &deployConfigs[i].on_aux_healthcheck);
+	alloc_arr(project, "on_aux_fail", &deployConfigs[i].on_aux_fail);
+        
+	printf("Name %s\n", deployConfigs[i].name);
+	printf("-> Main File %s\n", deployConfigs[i].main_file);
+        printf("-> Aux File %s\n", deployConfigs[i].aux_file);
+	printf("-> on main run %s\n", deployConfigs[i].on_main_run.run_script[0]);
       }
 
   } else {
