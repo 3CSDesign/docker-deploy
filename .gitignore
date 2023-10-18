@@ -55,3 +55,4 @@ makefile
 INSTALL
 objs/*
 configure~
+*.log

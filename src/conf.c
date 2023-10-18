@@ -120,7 +120,6 @@ void alloc_arr(config_setting_t *config_setting,
   if (tmp != NULL){
     int tmp_count = config_setting_length(tmp);
     int i;
-    //setting->lines = &tmp_count;
     setting->run_script = malloc(tmp_count * sizeof(char*));
     for(i = 0; i < tmp_count; i++){
       config_setting_t *scripts = config_setting_get_string_elem(tmp, i);
@@ -131,8 +130,28 @@ void alloc_arr(config_setting_t *config_setting,
 
 }
 
+/**
+   @TODO config file is read twice, optimise!
+ **/
+int count_config(const char* configFile){
+  config_t cfg;
+  config_init(&cfg);
+  config_set_include_func(&cfg, include_func);  
 
-void read_config(const char* configFile) {
+  // Read fike
+   if (!config_read_file(&cfg, configFile)) {
+        fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
+        config_error_line(&cfg), config_error_text(&cfg));
+        config_destroy(&cfg);
+        exit(EXIT_FAILURE);
+   }
+  const config_setting_t* projects = config_lookup(&cfg,"deploy.projects");
+  int count = config_setting_length(projects);
+  config_destroy(&cfg);
+  return count;
+}
+
+void read_config(const char* configFile, DeployConfig *deployConfigs) {
   // Using https://hyperrealm.github.io/libconfig
   config_t cfg;
   config_init(&cfg);
@@ -151,9 +170,6 @@ void read_config(const char* configFile) {
   if (projects != NULL){
 
     int count = config_setting_length(projects);
-
-    DeployConfig deployConfigs[count];
-
     int i;
     for(i = 0; i < count; ++i)
       {
@@ -169,15 +185,12 @@ void read_config(const char* configFile) {
 	alloc_arr(project, "on_aux_run", &deployConfigs[i].on_aux_run);
 	alloc_arr(project, "on_aux_healthcheck", &deployConfigs[i].on_aux_healthcheck);
 	alloc_arr(project, "on_aux_fail", &deployConfigs[i].on_aux_fail);
-        
-	printf("Name %s\n", deployConfigs[i].name);
-	printf("-> Main File %s\n", deployConfigs[i].main_file);
-        printf("-> Aux File %s\n", deployConfigs[i].aux_file);
-	printf("-> on main run %s\n", deployConfigs[i].on_main_run.run_script[0]);
+	
       }
-
+    config_destroy(&cfg);
+ 
   } else {
     printf("No project detected!\n");
+    exit(1);
   }
-   config_destroy(&cfg);
 }
