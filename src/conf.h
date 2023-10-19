@@ -41,6 +41,8 @@ typedef struct {
     char *main_file;
   // path to the aux docker compose file
     char *aux_file;
+
+    char *lock_file;
   // bash script to run during the main startup
     runner_structs on_main_run;
   // bash to check if the main containers are online
@@ -52,3 +54,5 @@ typedef struct {
   runner_structs on_aux_fail;
 
 } DeployConfig;
+
+#define DOCKER_RUN_CMD "sleep 5"

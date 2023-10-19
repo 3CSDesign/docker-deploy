@@ -16,6 +16,17 @@
   along with this program.  If not, see https://www.gnu.org/licenses/.
 */
 
+static int running = 0;
+static int scan_active = 0;
+static int reload_signal = 0;
+static char *pid_file_name = DD_DEFAULT_PID;
+static char *log_file_name = DD_DEFAULT_LOG;
+
+static int pid_fd = -1;
+static int counter = 0;
+static FILE *log_stream;
+static int conf_count;
+
 void handle_signal(int sig){
   if (sig == SIGINT){
     printf("Stopping Daemon...\n");
@@ -26,13 +37,15 @@ void handle_signal(int sig){
 	unlink(pid_file_name);
       }
       running = 0;
+      scan_active = 0;
+      unload_config();
       signal(SIGINT, SIG_DFL);
     }
   }
   
  else if (sig == SIGHUP) {
    fprintf(log_stream, "Debug: reloading daemon config file ...\n");
-   //reload_config();
+   reload_signal = 1;
  }
   else if (sig == SIGCHLD) {
    fprintf(log_stream, "Debug: received SIGCHLD signal\n");
@@ -108,6 +121,7 @@ int main_proccess() {
    }
 
    running = 1;
+   scan_active = 0;
    
    int ret;
    while (running != 0) {
@@ -125,10 +139,15 @@ int main_proccess() {
 	      (log_stream == stdout) ? "stdout" : log_file_name, strerror(errno));
        break;
      }
-     
-     sleep(1);
-    }
 
+     deploy();
+     if (reload_signal == 1 ){
+	 reload_signal = 0;
+	 reload_config();
+     }
+     
+     sleep(5);
+    }
 
    	/* Close log file, when it is used. */
 	if (log_stream != stdout) {

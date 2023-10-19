@@ -1,4 +1,5 @@
 /*
+  Copyright (C) 2023 3CS
   Copyright (C) 2023 Janith Cooray
 
   This program is free software: you can redistribute it and/or modify
@@ -41,7 +42,6 @@ typedef char* string;
 #include <fnmatch.h>
 #include <limits.h>
 #include <sys/stat.h>
-#include "conf.c"
 #include "unistd.h"
 #include <signal.h>
 #include <fcntl.h>
@@ -49,3 +49,7 @@ typedef char* string;
 #include <sys/types.h>
 #include <syslog.h>
 #include <errno.h>
+
+#include "file.c"
+#include "proc.c"
+#include "conf.c"

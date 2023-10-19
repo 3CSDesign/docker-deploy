@@ -20,51 +20,18 @@
 
 #include "main.h"
 
-static int running = 0;
-static char *pid_file_name = DD_DEFAULT_PID;
-static char *log_file_name = DD_DEFAULT_LOG;
-
-static int pid_fd = -1;
-static int counter = 0;
-static FILE *log_stream;
-static int conf_count;
-static char* username;
-
-
-
 static bool skip_main_proc = true;
 static bool daemon_mode = false;
-static bool apply_mode = false;
-static bool conf_given = false;
-static bool test_mode = false;
-
-#include "proc.c"
-
-
 int main (int argc, char **argv){
   struct options args_info;
   
   if (options(argc, argv, &args_info) != 0)
       exit(1);
 
-  //  username = malloc(strlen(getlogin()));
-  //strcpy(username, getlogin());
-  /*
-  conf_count = count_config(DD_DEFAULT_CONF);
-  DeployConfig deployConfig[conf_count];
-  read_config(DD_DEFAULT_CONF, &deployConfig);
-
-  int i;
-   for (i = 0; i < conf_count; i++){
-     DeployConfig conf = deployConfig[i];
-   }
-   */
-
-   //printf("Username ->:%s\n", getlogin() );
-
    pid_file_name = "/mnt/part2/code/3cs/docker-deploy/deploy.pid";
    log_file_name = "/mnt/part2/code/3cs/docker-deploy/debug.log";
-      
+
+   /*
    if (args_info.daemon_given) {
      daemon_mode = true;
      skip_main_proc = false;
@@ -98,9 +65,29 @@ int main (int argc, char **argv){
      return test_config();
 
    if (apply_mode)
-     apply();
+     return apply();
    else {
-     printf("Somethings' not right!");
-   }
+     return main_proccess();
    
+     }*/
+   
+   if (args_info.config_given) {
+     load_config(args_info.config_arg);
+
+     if (args_info.test_given) {
+       return test_config();
+     }
+
+     if (args_info.apply_given) {
+       return apply();
+     }
+
+     if (args_info.daemon_given)
+      daemonize();
+     return main_proccess();  
+   }
+
+   printf("Missing Config!\n");
+   exit(EXIT_FAILURE);
+  
 }

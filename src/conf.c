@@ -1,4 +1,5 @@
 /*
+  Copyright (C) 2023 3CS
   Copyright (C) 2023 Janith Cooray
 
   This program is free software: you can redistribute it and/or modify
@@ -16,6 +17,8 @@
  */
 
 #include "conf.h"
+static char* username;
+
 
 /**
    Include File Option
@@ -154,7 +157,8 @@ void destroy_deploy_conf(DeployConfig *deployConfig, int count){
 	free_setting(deployConfig[i].name);
 	free_setting(deployConfig[i].main_file);
 	free_setting(deployConfig[i].aux_file);
-
+	free_setting(deployConfig[i].lock_file);
+	
 	free_arr(&deployConfig[i].on_main_run);
 	free_arr(&deployConfig[i].on_main_healthcheck);
 	free_arr(&deployConfig[i].on_main_fail);
@@ -165,11 +169,13 @@ void destroy_deploy_conf(DeployConfig *deployConfig, int count){
 }
 
 static config_t cfg;
+static char* loaded_config_file;
 /**
    @TODO instead of loading it twice, pass the config_setting back and forth?
  **/
 void load_config(const char* configFile){
   printf("Loading Config at %s\n", configFile);
+  loaded_config_file = configFile;
   config_init(&cfg);
   config_set_include_func(&cfg, include_func);  
    if (!config_read_file(&cfg, configFile)) {
@@ -184,6 +190,12 @@ void load_config(const char* configFile){
 
 void unload_config(){
   config_destroy(&cfg);
+}
+
+void reload_config(){
+  unload_config();
+  load_config(loaded_config_file);
+  
 }
 
 config_setting_t *load_deploy_config(){
@@ -211,6 +223,7 @@ void read_config(DeployConfig *deployConfigs) {
 	alloc_setting(project,"name",&deployConfigs[i].name);
 	alloc_setting(project,"main_file",&deployConfigs[i].main_file);
 	alloc_setting(project,"aux_file",&deployConfigs[i].aux_file);
+	alloc_setting(project,"lock_file",&deployConfigs[i].lock_file);
 	
 	alloc_arr(project, "on_main_run", &deployConfigs[i].on_main_run);
 	alloc_arr(project, "on_main_healthcheck", &deployConfigs[i].on_main_healthcheck);
@@ -230,14 +243,118 @@ int test_config(){
   int conf_count = count_config();
   DeployConfig deployConfig[conf_count];
   read_config(&deployConfig);
-  printf("Assigned MEM %i\n", sizeof(deployConfig));
   destroy_deploy_conf(&deployConfig, conf_count);
   unload_config();
   printf("Config Ok\n");
   return 0;
 }
 
+
+bool needs_deploy(char* lock_file_path){
+  d_open_file(lock_file_path);
+  return d_readfile(lock_file_path);
+}
+
 int apply() {
-  printf("Queued! Ok\n");
+  username = malloc(strlen(getlogin()));
+  strcpy(username, getlogin());
+
+  int conf_count = count_config();
+  DeployConfig deployConfig[conf_count];
+  read_config(&deployConfig);
+
+  char* lock_file_path;
+
+  int i;
+  for (i = 0; i < conf_count; i++){
+     DeployConfig conf = deployConfig[i];
+     int cmp = strcmp(conf.name,username);
+     if(cmp == 0){
+       lock_file_path = malloc(strlen(conf.lock_file)+1);
+       strcpy(lock_file_path , conf.lock_file);
+    }
+  }
+  destroy_deploy_conf(&deployConfig, conf_count);
+  unload_config();
+  
+  d_open_file(lock_file_path);
+
+  d_write_file(lock_file_path, 1);
+  
+  printf("Queued for %s ! Ok\n", lock_file_path);
+
+  int queue_running = 0;
+  while(queue_running < 300){
+    if(needs_deploy(lock_file_path) == 1){
+      printf("Awaiting Deployment...\n");
+    }
+    if(needs_deploy(lock_file_path) == 2){
+      printf("Deploying...\n");
+    }
+    if(needs_deploy(lock_file_path) == 0){
+      printf("Deployed!\n");
+      queue_running = 1000;
+    }
+    sleep(1);
+  }
+  
   return 0;
+}
+
+#define BUFFER_SIZE 1024
+
+int exec(char* cmd){
+   int exitCode = system("ls -l");
+   if (exitCode == -1) {
+     return 1;
+   } else {
+     return 0;
+   }
+}
+
+void sync_deploy(DeployConfig deployConfig){
+  int total_execs = 0;
+
+  total_execs += deployConfig.on_main_run.count +
+    deployConfig.on_main_healthcheck.count +
+    deployConfig.on_aux_run.count +
+    deployConfig.on_aux_healthcheck.count +
+    2
+
+  char** cmds = malloc(total_execs * sizeof(char*));
+    
+  //aux run
+  
+  //deploy aux
+  //on fail
+  //aux healthcheck
+
+  //main run
+  //deploy main
+  //on fail
+  //main healthcheck
+  
+}
+
+void deploy(){
+  //Get the configs
+  int conf_count = count_config();
+  DeployConfig deployConfig[conf_count];
+  read_config(&deployConfig);
+  
+  //scan for who needs to deploy
+  int i;
+  for (i = 0; i < conf_count; i++){
+     DeployConfig conf = deployConfig[i];
+     if(needs_deploy(conf.lock_file) == 1) {
+       //deploying to X
+       printf("User %s Needs Deploy\n",conf.name);
+       d_write_file(conf.lock_file, 2);
+
+       d_write_file(conf.lock_file, 0);
+     }
+     
+    }
+  //kill
+  destroy_deploy_conf(&deployConfig, conf_count); 
 }
