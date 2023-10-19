@@ -1,4 +1,5 @@
 /*
+  Copyright (C) 2023 3CS
   Copyright (C) 2023 Janith Cooray
 
   This program is free software: you can redistribute it and/or modify
@@ -13,10 +14,23 @@
 
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see https://www.gnu.org/licenses/.
- */
+
+*/
 
 typedef struct {
-  int lines;
+  /**
+     Abosolute path for PID file
+     must match systemd pid location
+   **/
+  char* pid_file_path;
+  /**
+     Absolute path for Log file
+   **/
+  char* log_file_path;
+} global_config;
+
+typedef struct {
+  int count;
   char** run_script;
 } runner_structs;
 

@@ -35,20 +35,26 @@ extern "C" {
 #endif
 
 /** @brief Where the command line options are stored */
-struct gengetopt_args_info
+struct options
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  char * config_arg;	/**< @brief bind yaml file input.  */
-  char * config_orig;	/**< @brief bind yaml file input original value given at command line.  */
-  const char *config_help; /**< @brief bind yaml file input help description.  */
-  int verbose_flag;	/**< @brief verbose (default=off).  */
-  const char *verbose_help; /**< @brief verbose help description.  */
+  char * config_arg;	/**< @brief cfg file input.  */
+  char * config_orig;	/**< @brief cfg file input original value given at command line.  */
+  const char *config_help; /**< @brief cfg file input help description.  */
+  int daemon_flag;	/**< @brief daemon (default=off).  */
+  const char *daemon_help; /**< @brief daemon help description.  */
+  int test_flag;	/**< @brief test (default=off).  */
+  const char *test_help; /**< @brief test help description.  */
+  int apply_flag;	/**< @brief apply (default=off).  */
+  const char *apply_help; /**< @brief apply help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int config_given ;	/**< @brief Whether config was given.  */
-  unsigned int verbose_given ;	/**< @brief Whether verbose was given.  */
+  unsigned int daemon_given ;	/**< @brief Whether daemon was given.  */
+  unsigned int test_given ;	/**< @brief Whether test was given.  */
+  unsigned int apply_given ;	/**< @brief Whether apply was given.  */
 
 } ;
 
@@ -56,20 +62,20 @@ struct gengetopt_args_info
 struct options_params
 {
   int override; /**< @brief whether to override possibly already present options (default 0) */
-  int initialize; /**< @brief whether to initialize the option structure gengetopt_args_info (default 1) */
+  int initialize; /**< @brief whether to initialize the option structure options (default 1) */
   int check_required; /**< @brief whether to check that all required options were provided (default 1) */
-  int check_ambiguity; /**< @brief whether to check for options already specified in the option structure gengetopt_args_info (default 0) */
+  int check_ambiguity; /**< @brief whether to check for options already specified in the option structure options (default 0) */
   int print_errors; /**< @brief whether getopt_long should print an error message for a bad option (default 1) */
 } ;
 
 /** @brief the purpose string of the program */
-extern const char *gengetopt_args_info_purpose;
+extern const char *options_purpose;
 /** @brief the usage string of the program */
-extern const char *gengetopt_args_info_usage;
+extern const char *options_usage;
 /** @brief the description string of the program */
-extern const char *gengetopt_args_info_description;
+extern const char *options_description;
 /** @brief all the lines making the help output */
-extern const char *gengetopt_args_info_help[];
+extern const char *options_help[];
 
 /**
  * The command line parser
@@ -79,7 +85,7 @@ extern const char *gengetopt_args_info_help[];
  * @return 0 if everything went fine, NON 0 if an error took place
  */
 int options (int argc, char **argv,
-  struct gengetopt_args_info *args_info);
+  struct options *args_info);
 
 /**
  * The command line parser (version with additional parameters - deprecated)
@@ -93,7 +99,7 @@ int options (int argc, char **argv,
  * @deprecated use options_ext() instead
  */
 int options2 (int argc, char **argv,
-  struct gengetopt_args_info *args_info,
+  struct options *args_info,
   int override, int initialize, int check_required);
 
 /**
@@ -105,7 +111,7 @@ int options2 (int argc, char **argv,
  * @return 0 if everything went fine, NON 0 if an error took place
  */
 int options_ext (int argc, char **argv,
-  struct gengetopt_args_info *args_info,
+  struct options *args_info,
   struct options_params *params);
 
 /**
@@ -115,7 +121,7 @@ int options_ext (int argc, char **argv,
  * @return 0 if everything went fine, NON 0 if an error took place
  */
 int options_dump(FILE *outfile,
-  struct gengetopt_args_info *args_info);
+  struct options *args_info);
 
 /**
  * Save the contents of the option struct into a (text) file.
@@ -125,7 +131,7 @@ int options_dump(FILE *outfile,
  * @return 0 if everything went fine, NON 0 if an error took place
  */
 int options_file_save(const char *filename,
-  struct gengetopt_args_info *args_info);
+  struct options *args_info);
 
 /**
  * Print the help
@@ -151,17 +157,17 @@ void options_params_init(struct options_params *params);
 struct options_params *options_params_create(void);
 
 /**
- * Initializes the passed gengetopt_args_info structure's fields
+ * Initializes the passed options structure's fields
  * (also set default values for options that have a default)
  * @param args_info the structure to initialize
  */
-void options_init (struct gengetopt_args_info *args_info);
+void options_init (struct options *args_info);
 /**
- * Deallocates the string fields of the gengetopt_args_info structure
+ * Deallocates the string fields of the options structure
  * (but does not deallocate the structure itself)
  * @param args_info the structure to deallocate
  */
-void options_free (struct gengetopt_args_info *args_info);
+void options_free (struct options *args_info);
 
 /**
  * Checks that all the required options were specified
@@ -170,7 +176,7 @@ void options_free (struct gengetopt_args_info *args_info);
  *   possible errors
  * @return
  */
-int options_required (struct gengetopt_args_info *args_info,
+int options_required (struct options *args_info,
   const char *prog_name);
 
 

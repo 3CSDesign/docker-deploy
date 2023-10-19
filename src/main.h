@@ -15,6 +15,23 @@
   along with this program.  If not, see https://www.gnu.org/licenses/.
  */
 
+#define DD_NEW_LINE "\n"
+#define DD_DEFAULT_LOG "/etc/docker-deploy/debug.log"
+#define DD_DEFAULT_PID "/etc/docker-deploy/pid.id"
+#define DD_STRING_STOPPING "Stopping Daemon..."
+#define DD_DEFAULT_CONF "main.conf"
+#define DD_NAME "Docker Doeploy"
+
+typedef enum {
+  false = 0,
+  true = 1
+} bool;
+
+#define false 0
+#define true 1
+
+typedef char* string;
+
 #include <stdio.h>
 #include "stdlib.h"
 #include <string.h>
@@ -25,3 +42,10 @@
 #include <limits.h>
 #include <sys/stat.h>
 #include "conf.c"
+#include "unistd.h"
+#include <signal.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <syslog.h>
+#include <errno.h>

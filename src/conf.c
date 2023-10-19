@@ -112,6 +112,10 @@ void alloc_setting(config_setting_t *config_setting,
   strcpy(*setting,tmp);
 }
 
+void free_setting(char* *setting){
+  free(setting);
+}
+
 void alloc_arr(config_setting_t *config_setting,
 			     const char* setting_name ,
 				 runner_structs *setting)
@@ -120,6 +124,7 @@ void alloc_arr(config_setting_t *config_setting,
   if (tmp != NULL){
     int tmp_count = config_setting_length(tmp);
     int i;
+    setting->count = tmp_count;
     setting->run_script = malloc(tmp_count * sizeof(char*));
     for(i = 0; i < tmp_count; i++){
       config_setting_t *scripts = config_setting_get_string_elem(tmp, i);
@@ -130,43 +135,71 @@ void alloc_arr(config_setting_t *config_setting,
 
 }
 
+void free_arr(runner_structs *setting){
+  
+  int i;
+  for(i = 0; i < setting->count; i ++){
+    free(setting->run_script[i]);
+  }
+  free(setting->run_script);
+}
+
+void destroy_deploy_conf(DeployConfig *deployConfig, int count){
+    int i;
+    for(i = 0; i < count; ++i)
+      {
+	/**
+	   Collect Garbage
+	 **/
+	free_setting(deployConfig[i].name);
+	free_setting(deployConfig[i].main_file);
+	free_setting(deployConfig[i].aux_file);
+
+	free_arr(&deployConfig[i].on_main_run);
+	free_arr(&deployConfig[i].on_main_healthcheck);
+	free_arr(&deployConfig[i].on_main_fail);
+	free_arr(&deployConfig[i].on_aux_run);
+	free_arr(&deployConfig[i].on_aux_healthcheck);
+	free_arr(&deployConfig[i].on_aux_fail);
+      }
+}
+
+static config_t cfg;
 /**
-   @TODO config file is read twice, optimise!
+   @TODO instead of loading it twice, pass the config_setting back and forth?
  **/
-int count_config(const char* configFile){
-  config_t cfg;
+void load_config(const char* configFile){
+  printf("Loading Config at %s\n", configFile);
   config_init(&cfg);
   config_set_include_func(&cfg, include_func);  
-
-  // Read fike
    if (!config_read_file(&cfg, configFile)) {
         fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
         config_error_line(&cfg), config_error_text(&cfg));
         config_destroy(&cfg);
+	printf("Config Fail\n");
         exit(EXIT_FAILURE);
    }
-  const config_setting_t* projects = config_lookup(&cfg,"deploy.projects");
-  int count = config_setting_length(projects);
+  printf("Loaded Config at %s\n", configFile);   
+}
+
+void unload_config(){
   config_destroy(&cfg);
+}
+
+config_setting_t *load_deploy_config(){
+  return config_lookup(&cfg,"deploy.projects");
+}
+
+int count_config(){
+  const config_setting_t* projects = load_deploy_config();
+  int count = config_setting_length(projects);
   return count;
 }
 
-void read_config(const char* configFile, DeployConfig *deployConfigs) {
-  // Using https://hyperrealm.github.io/libconfig
-  config_t cfg;
-  config_init(&cfg);
-  config_set_include_func(&cfg, include_func);  
-
-  // Read fike
-   if (!config_read_file(&cfg, configFile)) {
-        fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
-        config_error_line(&cfg), config_error_text(&cfg));
-        config_destroy(&cfg);
-        exit(EXIT_FAILURE);
-   }
+void read_config(DeployConfig *deployConfigs) {
+  // Using https://hyperrealm.github.io/libconfig  
+  const config_setting_t* projects = load_deploy_config();
   
-  const config_setting_t* projects = config_lookup(&cfg,"deploy.projects");
-
   if (projects != NULL){
 
     int count = config_setting_length(projects);
@@ -187,10 +220,24 @@ void read_config(const char* configFile, DeployConfig *deployConfigs) {
 	alloc_arr(project, "on_aux_fail", &deployConfigs[i].on_aux_fail);
 	
       }
-    config_destroy(&cfg);
- 
   } else {
     printf("No project detected!\n");
     exit(1);
   }
+}
+
+int test_config(){
+  int conf_count = count_config();
+  DeployConfig deployConfig[conf_count];
+  read_config(&deployConfig);
+  printf("Assigned MEM %i\n", sizeof(deployConfig));
+  destroy_deploy_conf(&deployConfig, conf_count);
+  unload_config();
+  printf("Config Ok\n");
+  return 0;
+}
+
+int apply() {
+  printf("Queued! Ok\n");
+  return 0;
 }

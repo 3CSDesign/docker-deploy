@@ -1,0 +1,14 @@
+package "Docker Deploy"
+
+version "0.0.1"
+
+usage "ddeploy -c file "
+
+description "User Restricted Docker Setup"
+
+# Options
+option  "config"         c "cfg file input"
+        string typestr="filename"     optional
+option  "daemon"         d "daemon" flag      off
+option  "test"         	 t "test"   flag      off
+option 	"apply"		 a "apply"  flag      off
