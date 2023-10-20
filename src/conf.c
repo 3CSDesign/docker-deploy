@@ -119,33 +119,6 @@ void free_setting(char* *setting){
   free(setting);
 }
 
-void alloc_arr(config_setting_t *config_setting,
-			     const char* setting_name ,
-				 runner_structs *setting)
-{
-  config_setting_t* tmp = config_setting_lookup( config_setting , setting_name);
-  if (tmp != NULL){
-    int tmp_count = config_setting_length(tmp);
-    int i;
-    setting->count = tmp_count;
-    setting->run_script = malloc(tmp_count * sizeof(char*));
-    for(i = 0; i < tmp_count; i++){
-      config_setting_t *scripts = config_setting_get_string_elem(tmp, i);
-      setting->run_script[i] = malloc(strlen(scripts));
-      strcpy(setting->run_script[i], scripts);
-    }
-  }
-
-}
-
-void free_arr(runner_structs *setting){
-  
-  int i;
-  for(i = 0; i < setting->count; i ++){
-    free(setting->run_script[i]);
-  }
-  free(setting->run_script);
-}
 
 void destroy_deploy_conf(DeployConfig *deployConfig, int count){
     int i;
@@ -156,15 +129,7 @@ void destroy_deploy_conf(DeployConfig *deployConfig, int count){
 	 **/
 	free_setting(deployConfig[i].name);
 	free_setting(deployConfig[i].main_file);
-	free_setting(deployConfig[i].aux_file);
 	free_setting(deployConfig[i].lock_file);
-	
-	free_arr(&deployConfig[i].on_main_run);
-	free_arr(&deployConfig[i].on_main_healthcheck);
-	free_arr(&deployConfig[i].on_main_fail);
-	free_arr(&deployConfig[i].on_aux_run);
-	free_arr(&deployConfig[i].on_aux_healthcheck);
-	free_arr(&deployConfig[i].on_aux_fail);
       }
 }
 
@@ -194,8 +159,7 @@ void unload_config(){
 
 void reload_config(){
   unload_config();
-  load_config(loaded_config_file);
-  
+  load_config(loaded_config_file);  
 }
 
 config_setting_t *load_deploy_config(){
@@ -208,6 +172,15 @@ int count_config(){
   return count;
 }
 
+void set_pid(){
+  config_lookup_string(&cfg, "pid_file_path",&pid_file_name);
+}
+
+void set_log(){
+  config_lookup_string(&cfg, "log_file_path",&log_file_name);
+}
+
+
 void read_config(DeployConfig *deployConfigs) {
   // Using https://hyperrealm.github.io/libconfig  
   const config_setting_t* projects = load_deploy_config();
@@ -219,19 +192,9 @@ void read_config(DeployConfig *deployConfigs) {
     for(i = 0; i < count; ++i)
       {
 	config_setting_t *project = config_setting_get_elem(projects, i);
-
 	alloc_setting(project,"name",&deployConfigs[i].name);
 	alloc_setting(project,"main_file",&deployConfigs[i].main_file);
-	alloc_setting(project,"aux_file",&deployConfigs[i].aux_file);
-	alloc_setting(project,"lock_file",&deployConfigs[i].lock_file);
-	
-	alloc_arr(project, "on_main_run", &deployConfigs[i].on_main_run);
-	alloc_arr(project, "on_main_healthcheck", &deployConfigs[i].on_main_healthcheck);
-	alloc_arr(project, "on_main_fail", &deployConfigs[i].on_main_fail);
-	alloc_arr(project, "on_aux_run", &deployConfigs[i].on_aux_run);
-	alloc_arr(project, "on_aux_healthcheck", &deployConfigs[i].on_aux_healthcheck);
-	alloc_arr(project, "on_aux_fail", &deployConfigs[i].on_aux_fail);
-	
+	alloc_setting(project,"lock_file",&deployConfigs[i].lock_file);	
       }
   } else {
     printf("No project detected!\n");
@@ -301,10 +264,8 @@ int apply() {
   return 0;
 }
 
-#define BUFFER_SIZE 1024
-
 int exec(char* cmd){
-   int exitCode = system("ls -l");
+   int exitCode = system(cmd);
    if (exitCode == -1) {
      return 1;
    } else {
@@ -312,36 +273,11 @@ int exec(char* cmd){
    }
 }
 
-void sync_deploy(DeployConfig deployConfig){
-  int total_execs = 0;
-
-  total_execs += deployConfig.on_main_run.count +
-    deployConfig.on_main_healthcheck.count +
-    deployConfig.on_aux_run.count +
-    deployConfig.on_aux_healthcheck.count +
-    2
-
-  char** cmds = malloc(total_execs * sizeof(char*));
-    
-  //aux run
-  
-  //deploy aux
-  //on fail
-  //aux healthcheck
-
-  //main run
-  //deploy main
-  //on fail
-  //main healthcheck
-  
-}
-
 void deploy(){
   //Get the configs
   int conf_count = count_config();
   DeployConfig deployConfig[conf_count];
   read_config(&deployConfig);
-  
   //scan for who needs to deploy
   int i;
   for (i = 0; i < conf_count; i++){
@@ -350,7 +286,7 @@ void deploy(){
        //deploying to X
        printf("User %s Needs Deploy\n",conf.name);
        d_write_file(conf.lock_file, 2);
-
+       exec(conf.main_file);
        d_write_file(conf.lock_file, 0);
      }
      

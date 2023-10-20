@@ -30,28 +30,12 @@ typedef struct {
 } global_config;
 
 typedef struct {
-  int count;
-  char** run_script;
-} runner_structs;
-
-typedef struct {
   // Name of the project which is also the user 
     char *name;
   // path to the main docker compose file
     char *main_file;
-  // path to the aux docker compose file
-    char *aux_file;
 
     char *lock_file;
-  // bash script to run during the main startup
-    runner_structs on_main_run;
-  // bash to check if the main containers are online
-    runner_structs on_main_healthcheck;
-  // bash script to exec on fail of main
-  runner_structs on_main_fail;
-  runner_structs on_aux_run;
-  runner_structs on_aux_healthcheck;
-  runner_structs on_aux_fail;
 
 } DeployConfig;
 

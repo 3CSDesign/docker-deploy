@@ -28,51 +28,15 @@ int main (int argc, char **argv){
   if (options(argc, argv, &args_info) != 0)
       exit(1);
 
-   pid_file_name = "/mnt/part2/code/3cs/docker-deploy/deploy.pid";
-   log_file_name = "/mnt/part2/code/3cs/docker-deploy/debug.log";
-
-   /*
-   if (args_info.daemon_given) {
-     daemon_mode = true;
-     skip_main_proc = false;
-   }
-
-   if (args_info.help_given)
-     skip_main_proc = true;
-   if (args_info.test_given)
-     test_mode = true;
-   if (args_info.version_given)
-     skip_main_proc = true;
-   if (args_info.apply_given) {
-     skip_main_proc = true;
-     apply_mode = true;
-   }
-
-  
-   // If config is provided, Load it anyway
-   if(args_info.config_given)
-     load_config(args_info.config_arg);
-
-   if (skip_main_proc == false) {
-     
-     if (conf_given)
-       exit(1);
-     daemonize();
-     return main_proccess();
-   }
-   
-   if(test_mode)
-     return test_config();
-
-   if (apply_mode)
-     return apply();
-   else {
-     return main_proccess();
-   
-     }*/
-   
    if (args_info.config_given) {
      load_config(args_info.config_arg);
+     
+     set_pid();
+     set_log();
+     printf("Looking into PID - %s\n",pid_file_name);
+     
+     d_open_file(log_file_name);
+     d_open_file(pid_file_name);
 
      if (args_info.test_given) {
        return test_config();

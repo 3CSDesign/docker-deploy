@@ -17,10 +17,7 @@
 */
 
 static int running = 0;
-static int scan_active = 0;
 static int reload_signal = 0;
-static char *pid_file_name = DD_DEFAULT_PID;
-static char *log_file_name = DD_DEFAULT_LOG;
 
 static int pid_fd = -1;
 static int counter = 0;
@@ -37,9 +34,11 @@ void handle_signal(int sig){
 	unlink(pid_file_name);
       }
       running = 0;
-      scan_active = 0;
       unload_config();
       signal(SIGINT, SIG_DFL);
+    }
+    else {
+      exit(EXIT_SUCCESS);
     }
   }
   
@@ -121,7 +120,6 @@ int main_proccess() {
    }
 
    running = 1;
-   scan_active = 0;
    
    int ret;
    while (running != 0) {

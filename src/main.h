@@ -32,6 +32,8 @@ typedef enum {
 #define true 1
 
 typedef char* string;
+static char *pid_file_name = DD_DEFAULT_PID;
+static char *log_file_name = DD_DEFAULT_LOG;
 
 #include <stdio.h>
 #include "stdlib.h"
