@@ -19,6 +19,9 @@
 #include "conf.h"
 static char* username;
 
+static config_t cfg;
+static char* loaded_config_file;
+
 
 /**
    Include File Option
@@ -105,6 +108,7 @@ static const char **include_func(config_t *config,
   return((const char **)result);
 }
 
+
 void alloc_setting(config_setting_t *config_setting,
 			     const char* setting_name ,
 			     char* *setting)
@@ -133,11 +137,6 @@ void destroy_deploy_conf(DeployConfig *deployConfig, int count){
       }
 }
 
-static config_t cfg;
-static char* loaded_config_file;
-/**
-   @TODO instead of loading it twice, pass the config_setting back and forth?
- **/
 void load_config(const char* configFile){
   printf("Loading Config at %s\n", configFile);
   loaded_config_file = configFile;
@@ -166,6 +165,16 @@ config_setting_t *load_deploy_config(){
   return config_lookup(&cfg,"deploy.projects");
 }
 
+void check_inc_permission(char* conf_file){
+    char* parent[100];
+    getParentDirectory(conf_file,&parent);
+    if(check_permissions(parent) != 0){
+      printf("Refusing to start, Please fix file permissions first!\n");
+      exit(EXIT_FAILURE);
+    }
+    
+}
+
 int count_config(){
   const config_setting_t* projects = load_deploy_config();
   int count = config_setting_length(projects);
@@ -182,11 +191,8 @@ void set_log(){
 
 
 void read_config(DeployConfig *deployConfigs) {
-  // Using https://hyperrealm.github.io/libconfig  
-  const config_setting_t* projects = load_deploy_config();
-  
+  const config_setting_t* projects = load_deploy_config();  
   if (projects != NULL){
-
     int count = config_setting_length(projects);
     int i;
     for(i = 0; i < count; ++i)
@@ -218,10 +224,10 @@ bool needs_deploy(char* lock_file_path){
   return d_readfile(lock_file_path);
 }
 
-int apply() {
+int apply(char* config_file_path) {
   username = malloc(strlen(getlogin()));
   strcpy(username, getlogin());
-
+  
   int conf_count = count_config();
   DeployConfig deployConfig[conf_count];
   read_config(&deployConfig);
@@ -274,11 +280,9 @@ int exec(char* cmd){
 }
 
 void deploy(){
-  //Get the configs
   int conf_count = count_config();
   DeployConfig deployConfig[conf_count];
   read_config(&deployConfig);
-  //scan for who needs to deploy
   int i;
   for (i = 0; i < conf_count; i++){
      DeployConfig conf = deployConfig[i];
@@ -291,6 +295,5 @@ void deploy(){
      }
      
     }
-  //kill
   destroy_deploy_conf(&deployConfig, conf_count); 
 }

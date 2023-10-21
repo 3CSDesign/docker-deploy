@@ -1,7 +1,6 @@
 EXECUTABLE = dedeploy
 
-
-.PHONY: all clean yaml
+.PHONY: all clean
 
 all: clean $(EXECUTABLE)
 
@@ -12,8 +11,16 @@ $(EXECUTABLE):
 	mkdir -p objs
 	gcc `pkg-config --cflags libconfig` -Wall src/main.c -o objs/$(EXECUTABLE) $(LIB) $(LDFLAGS) `pkg-config --libs libconfig`
 
-test:
+check:
 	./objs/$(EXECUTABLE) -h
 
 install:
 	cp objs/$(EXECUTABLE) /usr/local/bin/$(EXECUTABLE)
+	mkdir -p /etc/docker-deploy/
+	touch /etc/docker-deploy/debug.log
+	touch /etc/docker-deploy/pid.id
+	touch /etc/docker-deploy/main.cfg
+	mkdir -p /etc/docker-deploy/deploy.d/
+	cp main.cfg /etc/docker-deploy/main.cfg
+	cp deploy.d/user.cfg /etc/docker-deploy/deploy.d/default.cfg
+	chmod -R 755 /etc/docker-deploy/.

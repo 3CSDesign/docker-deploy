@@ -23,22 +23,10 @@
 #define DD_DEFAULT_CONF "main.conf"
 #define DD_NAME "Docker Doeploy"
 
-typedef enum {
-  false = 0,
-  true = 1
-} bool;
-
-#define false 0
-#define true 1
-
-typedef char* string;
-static char *pid_file_name = DD_DEFAULT_PID;
-static char *log_file_name = DD_DEFAULT_LOG;
 
 #include <stdio.h>
 #include "stdlib.h"
 #include <string.h>
-#include "options.c"
 #include <libconfig.h>
 #include <dirent.h>
 #include <fnmatch.h>
@@ -51,7 +39,21 @@ static char *log_file_name = DD_DEFAULT_LOG;
 #include <sys/types.h>
 #include <syslog.h>
 #include <errno.h>
+#include "config.h"
 
+typedef enum {
+  false = 0,
+  true = 1
+} bool;
+
+#define false 0
+#define true 1
+
+typedef char* string;
+static char *pid_file_name = DD_DEFAULT_PID;
+static char *log_file_name = DD_DEFAULT_LOG;
+
+#include "options.c"
 #include "file.c"
 #include "proc.c"
 #include "conf.c"

@@ -14,6 +14,7 @@ AC_LANG([C])
 AM_INIT_AUTOMAKE
 #-------------------
 
+AC_CONFIG_HEADERS([src/config.h])
 
 AC_CHECK_FUNCS([strchr])
 AC_FUNC_MALLOC
@@ -23,7 +24,7 @@ AC_PROG_CC
 AC_CONFIG_SRCDIR([src/main.c])
 
 AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
-
+AC_CHECK_HEADERS([fcntl.h syslog.h])
 AC_CHECK_HEADER([stdio.h],
                 [AC_DEFINE([HAVE_STDIO_H], [1],
                    [Define to 1 if you have <stdio.h>.])],
@@ -40,6 +41,19 @@ PKG_CHECK_MODULES([LIBCONFIG], [libconfig >= 1.4],,
 
 AC_CHECK_HEADER_STDBOOL
 AC_TYPE_SIZE_T
+
+
+ AC_CHECK_FUNCS([getcwd])
+ AC_CHECK_FUNCS([strdup])
+ AC_CHECK_FUNCS([strerror])
+ AC_CHECK_FUNCS([strrchr])
+ AC_CHECK_HEADERS([fcntl.h])
+ AC_CHECK_HEADERS([syslog.h])
+ AC_FUNC_FORK
+ AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
+ AC_FUNC_REALLOC
+ AC_TYPE_PID_T
+
 #---------------------------------------------
 # Checks for library functions.
 #---------------------------------------------

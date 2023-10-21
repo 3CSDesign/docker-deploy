@@ -33,8 +33,7 @@ int main (int argc, char **argv){
      
      set_pid();
      set_log();
-     printf("Looking into PID - %s\n",pid_file_name);
-     
+
      d_open_file(log_file_name);
      d_open_file(pid_file_name);
 
@@ -43,8 +42,18 @@ int main (int argc, char **argv){
      }
 
      if (args_info.apply_given) {
-       return apply();
+       return apply(args_info.config_arg);
      }
+
+     check_inc_permission(args_info.config_arg);
+
+     char cwd[PATH_MAX];
+         if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        printf("Current directory: %s\n", cwd);
+    } else {
+        perror("getcwd() error");
+        return 1;
+    }
 
      if (args_info.daemon_given)
       daemonize();
