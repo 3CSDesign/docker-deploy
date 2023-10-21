@@ -56,4 +56,4 @@ INSTALL
 objs/*
 configure~
 *.log
-#*.pid
+*.pid
