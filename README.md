@@ -32,7 +32,7 @@ We use this to run/change docker-compose without the service-user having access 
 This package is built using GNU auto tools. refer to [GNU Docs](https://www.gnu.org/software/automake/manual/html_node/Autotools-Introduction.html). This program is only supported on LINUX based systems. you may use a cross-build system if you are coming from Windows/Darwin etc.
 
 #### - Dependent Packages
-Depends on Libconfig, [refer](https://hyperrealm.github.io/libconfig/libconfig_manual.html)
+Depends on Libconfig V1.6+, [refer](https://hyperrealm.github.io/libconfig/libconfig_manual.html)
 
 #### - Build Instructions
 ##### > Clone
@@ -101,9 +101,9 @@ For systemd, create a service file -example: `/usr/lib/systemd/system/docker-dep
 Description=Super simple daemon
 
 [Service]
-Type=forking
-PIDFile=/etc/docker-deploy/deploy.pid
-ExecStart=/usr/local/bin/dedeploy -c /path/to/config.cfg -d 
+Type=simple
+WorkingDirectory=/etc/docker-deploy/
+ExecStart=/usr/local/bin/dedeploy -c main.cfg
 User=root
 ExecReload=/bin/kill -HUP $MAINPID
 

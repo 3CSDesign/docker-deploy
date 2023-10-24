@@ -30,8 +30,8 @@ AC_CHECK_HEADER([stdio.h],
                    [Define to 1 if you have <stdio.h>.])],
                 [AC_MSG_ERROR([stdio.h not found])])
 
-PKG_CHECK_MODULES([LIBCONFIG], [libconfig >= 1.4],,
-  AC_MSG_ERROR([libconfig 1.4 or newer not found.])
+PKG_CHECK_MODULES([LIBCONFIG], [libconfig >= 1.7],,
+  AC_MSG_ERROR([libconfig 1.7 or newer not found.])
 )
 
 

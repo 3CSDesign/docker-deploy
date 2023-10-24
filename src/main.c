@@ -45,8 +45,6 @@ int main (int argc, char **argv){
        return apply(args_info.config_arg);
      }
 
-     check_inc_permission(args_info.config_arg);
-
      char cwd[PATH_MAX];
          if (getcwd(cwd, sizeof(cwd)) != NULL) {
         printf("Current directory: %s\n", cwd);
